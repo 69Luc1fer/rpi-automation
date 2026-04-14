@@ -1,11 +1,11 @@
-name: RPi-Automation-CI
+name: RPi-Automation-CI-CD
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -13,16 +13,24 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-        with:
-          platforms: arm64
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker Image for RPi
-        run: |
-          docker buildx build --platform linux/arm64 -t my-rpi-app:latest --load .
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Test RPi Image via Emulation
+      - name: Build and Push for RPi
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/rpi-app:latest
+
+      - name: Test Published Image
         run: |
-          docker run --rm --platform linux/arm64 my-rpi-app:latest
+          docker run --rm --platform linux/arm64 ${{ secrets.DOCKER_USERNAME }}/rpi-app:latest
