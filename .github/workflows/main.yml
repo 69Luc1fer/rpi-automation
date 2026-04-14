@@ -1,0 +1,28 @@
+name: RPi-Automation-CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker Image for RPi
+        run: |
+          docker buildx build --platform linux/arm64 -t my-rpi-app:latest --load .
+
+      - name: Test RPi Image via Emulation
+        run: |
+          docker run --rm --platform linux/arm64 my-rpi-app:latest
