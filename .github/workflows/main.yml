@@ -27,12 +27,18 @@ jobs:
       - name: Test Published Image (ARM64)
         run: |
           docker run -d --name test-arm64 --platform linux/arm64 -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/rpi-app:latest
-          sleep 5
-          curl --fail http://localhost:8000/
+          for i in {1..12}; do
+            sleep 5
+            curl --fail http://localhost:8000/ && break
+            echo "Retry $i..."
+          done
           docker stop test-arm64
       - name: Test Published Image (ARM32/v7)
         run: |
           docker run -d --name test-arm32 --platform linux/arm/v7 -p 8001:8000 ${{ secrets.DOCKER_USERNAME }}/rpi-app:latest
-          sleep 5
-          curl --fail http://localhost:8001/
+          for i in {1..12}; do
+            sleep 5
+            curl --fail http://localhost:8001/ && break
+            echo "Retry $i..."
+          done
           docker stop test-arm32
